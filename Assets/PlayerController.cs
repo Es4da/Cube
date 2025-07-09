@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -30,9 +31,8 @@ public class PlayerController : MonoBehaviour
         {
             // もし付いていれば、コンソールにメッセージを表示
             Debug.Log("障害物に当たった！ゲームオーバー！");
-
-            // ここで自分のオブジェクトを破壊して、ゲームオーバーを表現
-            Destroy(gameObject);
+            Time.timeScale = 0f;
+            SceneManager.LoadScene("GameOver");
         }
     }
 }
