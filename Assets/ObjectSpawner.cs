@@ -19,7 +19,7 @@ public class ObjectSpawner : MonoBehaviour
         while (true)
         {
             // 1秒待つ（この数値を小さくすると難易度が上がる）
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.075f);
 
             // 障害物を生成する位置を計算
             // X座標は-10から10のランダムな値、Y座標は10（画面の上の方）
