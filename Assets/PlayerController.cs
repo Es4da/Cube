@@ -12,11 +12,16 @@ public class PlayerController : MonoBehaviour
     // Rigidbodyコンポーネントを保持するための変数
     private Rigidbody rb;
 
+    // ScoreManagerへの参照を追加
+    private ScoreManager scoreManager;
+
     // Start is called before the first frame update
     void Start()
     {
         // 最初に一度だけ、自分にアタッチされているRigidbodyコンポーネントを取得しておく
         rb = GetComponent<Rigidbody>();
+        
+        scoreManager = FindObjectOfType<ScoreManager>();
     }
 
     // Update is called once per frame
@@ -51,6 +56,15 @@ public class PlayerController : MonoBehaviour
 
             // ゲーム内の時間を止める
             Time.timeScale = 0f;
+
+            // ゲームオーバー時にスコアを保存する (ここから追加)
+            if (scoreManager != null)
+            {
+                float finalScore = scoreManager.survivalTime;
+                // "LastScore"というキー名で、今回のスコア(finalScore)を保存する
+                PlayerPrefs.SetFloat("LastScore", finalScore);
+                PlayerPrefs.Save(); // すぐに保存を確定させる
+            }
 
             // GameOverシーンを読み込む
             SceneManager.LoadScene("GameOver");
