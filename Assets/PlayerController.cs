@@ -63,6 +63,18 @@ public class PlayerController : MonoBehaviour
                 float finalScore = scoreManager.survivalTime;
                 // "LastScore"というキー名で、今回のスコア(finalScore)を保存する
                 PlayerPrefs.SetFloat("LastScore", finalScore);
+                // 今までのハイスコアを "HighScore" というキーで読み込む（なければ0）
+            float highScore = PlayerPrefs.GetFloat("HighScore", 0f);
+
+            // もし今回のスコアがハイスコアより高ければ、ハイスコアを更新する
+            if (finalScore > highScore)
+            {
+                PlayerPrefs.SetFloat("HighScore", finalScore);
+                Debug.Log("ハイスコア更新！"); // 確認用のログ
+            }
+            
+            // --- ↑↑↑ ここまでハイスコア処理を追加 ↑↑↑ ---
+
                 PlayerPrefs.Save(); // すぐに保存を確定させる
             }
 
