@@ -59,40 +59,40 @@ public class PlayerController : MonoBehaviour
     }
     
     private IEnumerator GameOverSequence()
+{
+    // --- 1. まず時間を止める！ ---
+    Time.timeScale = 0f;
+
+    // --- 2. スコアを保存 ---
+    ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+    if (scoreManager != null)
     {
-        // --- 1. スコアを保存 ---
-        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
-        if (scoreManager != null)
+        float finalScore = scoreManager.survivalTime;
+        PlayerPrefs.SetFloat("LastScore", finalScore);
+        float highScore = PlayerPrefs.GetFloat("HighScore", 0f);
+        if (finalScore > highScore)
         {
-            float finalScore = scoreManager.survivalTime;
-            PlayerPrefs.SetFloat("LastScore", finalScore);
-            float highScore = PlayerPrefs.GetFloat("HighScore", 0f);
-            if (finalScore > highScore)
-            {
-                PlayerPrefs.SetFloat("HighScore", finalScore);
-            }
-            PlayerPrefs.Save();
+            PlayerPrefs.SetFloat("HighScore", finalScore);
         }
-
-        // --- 2. 画面を揺らす ---
-        // Main CameraにアタッチされたCameraShakeスクリプトを取得
-        CameraShake cameraShake = Camera.main.GetComponent<CameraShake>();
-        if (cameraShake != null)
-        {
-            // Shakeメソッドを呼び出し、0.3秒間、強さ0.2で揺らす
-            StartCoroutine(cameraShake.Shake(0.3f, 0.2f));
-        }
-        
-        // 自分の物理的な動きや入力を止める
-        rb.isKinematic = true; // 物理演算を停止
-        GetComponent<PlayerController>().enabled = false; // このスクリプトを無効化
-
-        // --- 3. 0.5秒待つ ---
-        // Time.timeScaleの影響を受けない待機命令
-        yield return new WaitForSecondsRealtime(0.5f);
-
-        // --- 4. 時間の流れを止めて、シーンを遷移する ---
-        Time.timeScale = 0f;
-        SceneManager.LoadScene("GameOver");
+        PlayerPrefs.Save();
     }
+
+    // --- 3. 画面を揺らす ---
+    CameraShake cameraShake = Camera.main.GetComponent<CameraShake>();
+    if (cameraShake != null)
+    {
+        // 時間が止まっていても、この揺れは正しく実行される
+        StartCoroutine(cameraShake.Shake(0.3f, 0.2f));
+    }
+    
+    // プレイヤーの動きを止める
+    rb.isKinematic = true; 
+    GetComponent<PlayerController>().enabled = false;
+
+    // --- 4. 0.5秒待つ ---
+    yield return new WaitForSecondsRealtime(0.5f);
+
+    // --- 5. ゲームオーバー画面へ ---
+    SceneManager.LoadScene("GameOver");
+}
 }
