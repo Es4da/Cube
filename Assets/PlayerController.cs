@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement; // シーン遷移のために必要
 
@@ -20,7 +21,7 @@ public class PlayerController : MonoBehaviour
     {
         // 最初に一度だけ、自分にアタッチされているRigidbodyコンポーネントを取得しておく
         rb = GetComponent<Rigidbody>();
-        
+
         scoreManager = FindObjectOfType<ScoreManager>();
     }
 
@@ -52,34 +53,46 @@ public class PlayerController : MonoBehaviour
         // ぶつかった相手のオブジェクトに "Obstacle" というタグが付いているかチェック
         if (collision.gameObject.CompareTag("Obstacle"))
         {
-            Debug.Log("障害物に当たった！ゲームオーバー！");
-
-            // ゲーム内の時間を止める
-            Time.timeScale = 0f;
-
-            // ゲームオーバー時にスコアを保存する (ここから追加)
-            if (scoreManager != null)
-            {
-                float finalScore = scoreManager.survivalTime;
-                // "LastScore"というキー名で、今回のスコア(finalScore)を保存する
-                PlayerPrefs.SetFloat("LastScore", finalScore);
-                // 今までのハイスコアを "HighScore" というキーで読み込む（なければ0）
+            // 被弾したら、一連のゲームオーバー演出を開始する
+            StartCoroutine(GameOverSequence());
+        }
+    }
+    
+    private IEnumerator GameOverSequence()
+    {
+        // --- 1. スコアを保存 ---
+        ScoreManager scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null)
+        {
+            float finalScore = scoreManager.survivalTime;
+            PlayerPrefs.SetFloat("LastScore", finalScore);
             float highScore = PlayerPrefs.GetFloat("HighScore", 0f);
-
-            // もし今回のスコアがハイスコアより高ければ、ハイスコアを更新する
             if (finalScore > highScore)
             {
                 PlayerPrefs.SetFloat("HighScore", finalScore);
-                Debug.Log("ハイスコア更新！"); // 確認用のログ
             }
-            
-            // --- ↑↑↑ ここまでハイスコア処理を追加 ↑↑↑ ---
-
-                PlayerPrefs.Save(); // すぐに保存を確定させる
-            }
-
-            // GameOverシーンを読み込む
-            SceneManager.LoadScene("GameOver");
+            PlayerPrefs.Save();
         }
+
+        // --- 2. 画面を揺らす ---
+        // Main CameraにアタッチされたCameraShakeスクリプトを取得
+        CameraShake cameraShake = Camera.main.GetComponent<CameraShake>();
+        if (cameraShake != null)
+        {
+            // Shakeメソッドを呼び出し、0.3秒間、強さ0.2で揺らす
+            StartCoroutine(cameraShake.Shake(0.3f, 0.2f));
+        }
+        
+        // 自分の物理的な動きや入力を止める
+        rb.isKinematic = true; // 物理演算を停止
+        GetComponent<PlayerController>().enabled = false; // このスクリプトを無効化
+
+        // --- 3. 0.5秒待つ ---
+        // Time.timeScaleの影響を受けない待機命令
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        // --- 4. 時間の流れを止めて、シーンを遷移する ---
+        Time.timeScale = 0f;
+        SceneManager.LoadScene("GameOver");
     }
 }
